@@ -10,7 +10,7 @@
   />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <title>看敵人猜關卡 - 戰鬥貓咪舊傳篇</title>
+  <title>看敵人猜關卡 - 貓咪大戰爭舊傳篇</title>
   <style>
     :root {
       --primary-color: #ff6b6b;
@@ -35,8 +35,6 @@
       backdrop-filter: blur(10px);
       border-radius: 20px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      /* margin-top: 2rem; */ /* 移除，因為 body 已經 flex 了 */
-      /* margin-bottom: 2rem; */ /* 移除 */
       overflow: hidden;
       width: 100%; /* 確保容器可以自適應 */
       max-width: 900px; /* 設置最大寬度 */
@@ -72,12 +70,8 @@
 
     .game-content {
       padding: 2rem;
-      padding: 2rem;
-      /* 新增的樣式 */
-      margin-left: auto; /* 將左外邊距設為自動 */
-      margin-right: auto; /* 將右外邊距設為自動，實現水平置中 */
-      /* 如果需要，可以給一個 max-width 讓它不要撐滿 main-container */
-      /* max-width: 800px; */
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .instruction-card {
@@ -120,7 +114,6 @@
       outline: none;
     }
 
-    /* 將範例圖片和遊戲圖片分開，並設置遊戲圖片的樣式 */
     #examplePic {
       max-width: 100%;
       height: auto;
@@ -129,14 +122,13 @@
       transition: transform 0.3s ease;
     }
 
-    #gamePic { /* 遊戲中顯示的圖片 */
+    #gamePic {
       max-width: 100%;
       height: auto;
       border-radius: 15px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      transition: transform 0.3s ease;
-      margin-bottom: 20px; /* 圖片下方增加間距 */
-      display: block; /* 讓圖片獨佔一行並可以居中 */
+      margin-bottom: 20px;
+      display: block;
       margin-left: auto;
       margin-right: auto;
     }
@@ -175,8 +167,8 @@
       box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
       position: relative;
       overflow: hidden;
-      width: 80%; /* 寬度佔比 */
-      max-width: 300px; /* 最大寬度 */
+      width: 80%;
+      max-width: 300px;
     }
 
     .start-button:hover {
@@ -256,6 +248,7 @@
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
     }
 
     .input-group-custom {
@@ -269,10 +262,34 @@
     #userInput {
       max-width: 300px;
       margin: 0 auto;
-      height: 45px; /* 增加高度 */
-      font-size: 1.1em; /* 調整字體大小 */
-      padding: 5px 10px; /* 增加內邊距 */
+      height: 45px;
+      font-size: 1.1em;
+      padding: 5px 10px;
       text-align: center;
+    }
+
+    .score-display {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .life-display {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #dc3545; /* Bootstrap danger color */
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end; /* Align to the right */
+      gap: 5px; /* Spacing between images */
+    }
+
+    .life-icon {
+      width: 30px; /* Adjust size as needed */
+      height: 30px;
+      object-fit: contain;
     }
 
     @media (max-width: 768px) {
@@ -305,9 +322,16 @@
     <div class="game-content">
       <div class="instruction-card to-clear">
         <h3><i class="fas fa-info-circle"></i> 遊戲說明</h3>
-        <p class="mb-2">📱 觀察傳奇關卡的敵人配置，猜出正確的關卡名稱</p>
+        <p class="mb-2">📱 觀察傳奇關卡的敵人配置，猜出正確的關卡名稱。</p>
         <p class="mb-2">🎯 <strong>只包含舊傳奇關卡</strong></p>
-        <p class="mb-0">💡 <strong>注意章節提示</strong>：相同敵人配置的關卡需要根據章節來判斷</p>
+        <p class="mb-2">💡 <strong>注意章節提示</strong>：相同敵人配置的關卡需要根據章節來判斷。</p>
+        <hr class="my-3" style="border-color: rgba(255, 255, 255, 0.5);">
+        <p class="mb-2"><strong class="text-warning">生命值與分數：</strong></p>
+        <ul class="list-unstyled mb-0">
+          <li>❤️ 你有 <strong class="text-info">3 條生命</strong>，答錯或空白都會扣除生命。</li>
+          <li>🏆 成功答對可獲得分數。</li>
+          <li>🏅 累積 <strong class="text-success">20 分</strong> 即可獲勝！</li>
+        </ul>
       </div>
 
       <div class="example-section to-clear">
@@ -350,6 +374,11 @@
       </div>
 
       <div class="game-info" id="gameInfo" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="score-display">分數: <span id="score">0</span></span>
+            <div class="life-display" id="livesDisplay">
+              </div>
+        </div>
         <div class="chapter-display d-flex flex-column align-items-center mb-3">
           <span id="chapter" class="mb-2"></span>
           <span id="stage"></span>
@@ -369,10 +398,49 @@
     </div>
   </div>
 
+  <div class="modal fade" id="winModal" tabindex="-1" aria-labelledby="winModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="winModalLabel"><i class="fas fa-crown me-2"></i>恭喜！你贏了！</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p class="lead">你答對了20題，真是太厲害了！</p>
+          <p>感謝你的遊玩！</p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-primary" onclick="location.reload()"><i class="fas fa-home me-2"></i>回到首頁</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="lossModal" tabindex="-1" aria-labelledby="lossModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="lossModalLabel"><i class="fas fa-skull-crossbones me-2"></i>遊戲結束</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p class="lead">很可惜，你沒有生命了。</p>
+          <p>再接再厲！</p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-primary" onclick="location.reload()"><i class="fas fa-home me-2"></i>回到首頁</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let isclicked = false;
     let currentChapter = 0;
     let currentStage = 0;
+    let score = 0;
+    let lives = 3;
+    const WIN_SCORE = 20;
 
     const chapterNames = [
         "傳說的開始", "熱情的國家", "葡萄糖胺沙漠", "貓咪們渡海", "凝視著貓眼石", "西方街道", "鮪魚海域", "竹子島", "黏糊糊的鍾乳洞", "瓦魯肯諾火山", "千里之道", "鹹魚要塞", "軍艦島", "貓咪磨爪的走廊", "帕德嫩神殿", "退潮的海水浴場", "惡魔島", "越獄隧道", "卡彭監獄", "絲綢之路", "通向黑暗的地下道", "魔王的豪宅", "終焉宣告之夜", "大混戰", "戰爭的傷痕", "污染海洋的壞人", "連接心身的東西", "脆弱性和弱酸性", "被引導的貓咪們", "黑暗的國際都市", "加拉·巴·哥", "岩海苔半島", "惡羅斯聯邦", "亡者聚集之地", "孤島大瘟疫", "迪死你樂園", "豪來塢帝國", "小跟班海岸", "雲泥溫泉鄉", "濃濃春色島", "IT地下墓穴", "怪展會之畫", "22區", "超越大草原", "暴風雪車道", "奇點村", "最終大陸", "傳説的終點", "古代研究所"
@@ -430,36 +498,68 @@
       ["太古之力"] //48古代研究所1
     ];
 
+
+    /**
+     * 更新分數和生命值顯示
+     */
+    function updateScoreAndLivesDisplay() {
+      document.getElementById("score").innerText = score;
+      const livesDisplayEl = document.getElementById("livesDisplay");
+      livesDisplayEl.innerHTML = ''; // 清空現有的生命圖標
+
+      // 根據剩餘生命值顯示貓咪或幽靈圖標
+      for (let i = 0; i < 3; i++) {
+        const img = document.createElement('img');
+        img.classList.add('life-icon');
+        if (i < lives) {
+          img.src = 'cat.png'; // 活著的貓咪
+          img.alt = 'Life';
+        } else {
+          img.src = 'ghost.png'; // 失去的生命變成幽靈
+          img.alt = 'Lost Life';
+        }
+        livesDisplayEl.appendChild(img);
+      }
+    }
+
+    /**
+     * 處理遊戲邏輯，包括開始遊戲、檢查答案和更新UI
+     */
     function displayGame() {
       const warnEl = document.getElementById("warn");
       const answerEl = document.getElementById("answer");
       const gameInfoEl = document.getElementById("gameInfo");
       const tapButton = document.getElementById("tap");
-      const gamePicEl = document.getElementById("gamePic"); // 獲取遊戲圖片元素
+      const gamePicEl = document.getElementById("gamePic");
 
-      // 清除之前的警告和答案
+      // 清除之前的訊息和樣式
       warnEl.innerHTML = "";
       answerEl.innerHTML = "";
-      warnEl.className = ""; // 清除舊的Bootstrap類別
-      answerEl.className = ""; // 清除舊的Bootstrap類別
+      warnEl.className = "";
+      answerEl.className = "";
 
-      if (!isclicked) {
-        // 獲取輸入框的值，並轉換為數字
+      if (!isclicked) { // 遊戲開始或下一題
+        // 只有在遊戲開始時（說明卡片可見時）才重置分數和生命
+        if (document.querySelector(".instruction-card").style.display !== "none") {
+            score = 0;
+            lives = 3;
+        }
+        updateScoreAndLivesDisplay();
+
         const min = parseInt(document.getElementById("chapterMin").value);
         const max = parseInt(document.getElementById("chapterMax").value);
         
-        // 驗證輸入
+        // 驗證章節範圍輸入
         if (isNaN(min) || isNaN(max) || min < 1 || max > chapterNames.length || min > max) {
           warnEl.innerHTML = `
             <div class="alert alert-danger-custom alert-custom fade-in">
               <i class="fas fa-exclamation-triangle me-2"></i>
               請輸入正確的章節範圍 (1 到 ${chapterNames.length})，且起始值不能大於結束值！
             </div>
-          `;
-          return;
+          `;          return;
         }
 
-        // 隱藏說明內容
+        // 隱藏介紹性內容
         const elementsToClear = document.querySelectorAll(".to-clear");
         elementsToClear.forEach(el => {
           el.style.transition = "opacity 0.5s ease";
@@ -467,13 +567,13 @@
           setTimeout(() => el.style.display = "none", 500);
         });
 
-        // 顯示遊戲信息區塊
+        // 顯示遊戲資訊區塊
         setTimeout(() => {
           gameInfoEl.style.display = "block";
           gameInfoEl.classList.add("fade-in");
-        }, 600); // 等待說明隱藏後再顯示
+        }, 600);
 
-        // 建立章節範圍 (0-based index)
+        // 建立章節範圍數組
         const chapterRange = [];
         for (let i = min - 1; i < max; i++) {
           chapterRange.push(i);
@@ -482,11 +582,10 @@
         // 隨機選擇章節
         currentChapter = chapterRange[Math.floor(Math.random() * chapterRange.length)];
         
-        // 隨機選擇小關卡，根據該章節實際的小關卡數量
+        // 檢查章節是否有小關卡定義
         if (stageNames[currentChapter] && stageNames[currentChapter].length > 0) {
             currentStage = Math.floor(Math.random() * stageNames[currentChapter].length);
         } else {
-            // 如果某個章節沒有定義小關卡，則報錯並重試
             console.error(`Error: Chapter ${currentChapter} (${chapterNames[currentChapter]}) has no stages defined.`);
             warnEl.innerHTML = `
                 <div class="alert alert-danger-custom alert-custom fade-in">
@@ -494,39 +593,36 @@
                     內部錯誤：無法找到該章節的小關卡資料，請嘗試重新開始。
                 </div>
             `;
-            // 強制重設以便點擊"下一題"時能重新開始
-            isclicked = false; 
+            isclicked = false;
             tapButton.innerHTML = '<i class="fas fa-redo me-2"></i>下一題';
             tapButton.classList.remove("start-button");
-            tapButton.classList.add("btn-info"); // 可以給一個不同的樣式
+            tapButton.classList.add("btn-info");
             return;
         }
 
-        // 設定遊戲圖片的 src
+        // 更新遊戲圖片和章節/關卡名稱
         gamePicEl.src = `AllStage/${currentChapter}-${currentStage}.png`;
-        gamePicEl.classList.add("fade-in"); // 圖片出現時帶有淡入動畫
+        // gamePicEl.classList.add("fade-in"); // 移除圖片淡入效果以加快顯示速度 
 
-        // 顯示大關名稱
         document.getElementById("chapter").innerHTML = `<span class="badge bg-primary fs-6">第 ${currentChapter + 1} 章</span>`;
         document.getElementById("stage").innerHTML = `<span class="text-dark fw-bold">${chapterNames[currentChapter]}</span>`;
         
-        // 設置輸入框的 placeholder
-        document.getElementById("userInput").value = ""; // 清空上次的輸入
+        // 清空用戶輸入框並設置提示
+        document.getElementById("userInput").value = "";
         document.getElementById("userInput").placeholder = "請輸入關卡名稱...";
-        document.getElementById("userInput").focus(); // 自動聚焦到輸入框
+        document.getElementById("userInput").focus();
 
-        // 更新按鈕狀態
-        isclicked = true;
-        tapButton.innerHTML = '<i class="fas fa-check me-2"></i>確認答案';
-        tapButton.classList.remove("pulse", "start-button"); // 移除脈動動畫和原始樣式
-        tapButton.classList.add("btn-primary"); // 變成確認按鈕的藍色
+        isclicked = true; // 設置為已點擊，表示現在是檢查答案階段
+        tapButton.innerHTML = '<i class="fas fa-check me-2"></i>確認答案'; // 更新按鈕文字
+        tapButton.classList.remove("pulse", "start-button", "btn-info");
+        tapButton.classList.add("btn-primary");
 
-      } else {
-        // 檢查答案
+      } else { // 檢查答案
         const userInput = document.getElementById("userInput");
         const userAnswer = userInput ? userInput.value.trim() : "";
         
-        const normalize = str => str.replace(/\s+/g, '').toLowerCase(); // 轉換為小寫並移除空白，便於比較
+        // 正規化字串，移除空格並轉為小寫，以便進行不區分大小寫和空格的比較
+        const normalize = str => str.replace(/\s+/g, '').toLowerCase();
         const correctAnswer = stageNames[currentChapter][currentStage];
         const normalizedCorrectAnswer = normalize(correctAnswer);
         const normalizedUserAnswer = normalize(userAnswer);
@@ -535,9 +631,10 @@
           warnEl.innerHTML = `
             <div class="alert alert-danger-custom alert-custom fade-in">
               <i class="fas fa-times-circle me-2"></i>
-              請不要留空白！你沒機會重新回答了！
+              請不要留空白！你沒有機會重新回答了！
             </div>
           `;
+          lives--; // 空白答案扣除生命
         } else {
           if (normalizedUserAnswer === normalizedCorrectAnswer) {
             warnEl.innerHTML = `
@@ -546,6 +643,7 @@
                 🎉 恭喜你答對了！你真是專家！
               </div>
             `;
+            score++; // 答對加分
           } else {
             warnEl.innerHTML = `
               <div class="alert alert-danger-custom alert-custom fade-in">
@@ -553,8 +651,10 @@
                 很可惜答錯了，繼續加油！
               </div>
             `;
+            lives--; // 答錯扣除生命
           }
         }
+        updateScoreAndLivesDisplay(); // 更新分數和生命值顯示
 
         // 顯示正確答案
         answerEl.innerHTML = `
@@ -563,22 +663,42 @@
             <strong>正確答案：</strong>${chapterNames[currentChapter]} - ${correctAnswer}
           </div>
         `;
+        
+        // 檢查勝利/失敗條件
+        if (lives <= 0) {
+            const lossModal = new bootstrap.Modal(document.getElementById('lossModal'));
+            lossModal.show();
+            isclicked = false; // 阻止進一步的遊戲互動
+            return; // 停止函數執行
+        }
 
-        // 更新按鈕狀態為下一題
+        if (score >= WIN_SCORE) {
+            const winModal = new bootstrap.Modal(document.getElementById('winModal'));
+            winModal.show();
+            isclicked = false; // 阻止進一步的遊戲互動
+            return; // 停止函數執行
+        }
+
+        // 更新按鈕狀態為「下一題」
         tapButton.innerHTML = '<i class="fas fa-redo me-2"></i>下一題';
-        tapButton.classList.remove("btn-primary"); // 移除確認按鈕藍色
-        tapButton.classList.add("btn-info"); // 變回 info 藍色
-        isclicked = false;
+        tapButton.classList.remove("btn-primary");
+        tapButton.classList.add("btn-info");
+        isclicked = false; // 重置為未點擊，準備下一題
       }
     }
 
-    // 添加Enter鍵支持
+    // 添加 Enter 鍵支持
     document.addEventListener('keypress', function(e) {
-      // 只有在遊戲進行中 (isclicked 為 true) 且輸入框存在時才觸發
-      if (e.key === 'Enter' && isclicked && document.getElementById('userInput')) {
+      // 只有在遊戲進行中（已點擊且生命值大於0且分數未達到勝利條件）才響應 Enter 鍵
+      if (e.key === 'Enter' && isclicked && document.getElementById('userInput') && lives > 0 && score < WIN_SCORE) {
         displayGame();
       }
     });
+
+    // 初始載入時更新生命值顯示
+    document.addEventListener('DOMContentLoaded', updateScoreAndLivesDisplay);
   </script>
 </body>
 </html>
+
+
