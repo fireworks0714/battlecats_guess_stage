@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <title>看敵人猜關卡(舊傳篇)測試版</title>
+  <style>
+    body {
+      background-image: url("icon.png");
+      background-repeat: no-repeat;
+      background-position: right top;
+      background-attachment: fixed;
+      background-size: 400px;
+    }
+    #chapter,
+    #dash,
+    #stage, 
+    #chapterMin,
+    #chapterMax, 
+    #wave {
+      display: inline;
+      margin-right: 10px;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body style="background-color: lightyellow">
+  <div class="container">
+    <div class="col-xl-9" style="background-color: bisque">
+      <h1><b>看敵人猜關卡(舊傳篇)</b></h1>
+      <h3 class="to-clear"><b>遊戲說明</b></h3>
+      <h5 class="to-clear">就是看傳奇關卡的敵人配置然後猜出是什麼傳奇關卡而已</h5>
+      <h5 class="to-clear"><b>只有舊傳奇關卡而已</b></h5>
+      <h5 class="to-clear">以下是範例：</h5>
+      <h5 class="to-clear">會先出現敵人配置</h5>
+      <img id="pic" src="AllStage/0-0.png" />
+      <h5 class="to-clear">再來提示章節名字</h5>
+      <h5 class="to-clear"><b>「傳說的開始」</b></h5>
+      <h5 class="to-clear">你要回答出</h5>
+      <h5 class="to-clear"><b>「天搖地動」</b></h5>
+      <h5 class="to-clear"><b>請注意看大關提示</b>，因為如果有敵人配置相同的關卡，就需要看<b>章節提示來決定。</b></h5>
+      <h5 class="to-clear">自定義題目範圍(1是傳說的開始，49是古代研究所)：</h5>
+      <input type="text" class="to-clear chapter-range-input" id="chapterMin" value="1" placeholder="起始章節">
+      <h5 class="to-clear" id="wave">~</h5>
+      <input type="text" class="to-clear chapter-range-input" id="chapterMax" value="49" placeholder="結束章節">
+      <h5 class="to-clear"><b>對於傳奇故事，你了解多少呢?</b></h5>
+      <h5 class="to-clear">按下底下的「開始遊戲」來開始遊戲吧!</h5>
+      <div>
+        <h5 id="chapter"></h5><h5 id="dash"></h5><h5 id="stage"></h5>
+      </div>
+      <h5 id="warn"></h5>
+      <h5 id="answer"></h5>
+    </div>
+    <button
+      type="button"
+      class="btn btn-info"
+      id="tap"
+      onclick="displayGame()"
+    >
+      開始遊戲
+    </button>
+  </div>
+
+  <script>
+    let isclicked = false;
+    let currentChapter = 0;
+    let currentStage = 0;
+
+    const chapterNames = [
+        "傳說的開始",
+        "熱情的國家",
+        "葡萄糖胺沙漠",
+        "貓咪們渡海",
+        "凝視著貓眼石",
+        "西方街道",
+        "鮪魚海域",
+        "竹子島",
+        "黏糊糊的鍾乳洞",
+        "瓦魯肯諾火山",
+        "千里之道",
+        "鹹魚要塞",
+        "軍艦島",
+        "貓咪磨爪的走廊",
+        "帕德嫩神殿",
+        "退潮的海水浴場",
+        "惡魔島",
+        "越獄隧道",
+        "卡彭監獄",
+        "絲綢之路",
+        "通向黑暗的地下道",
+        "魔王的豪宅",
+        "終焉宣告之夜",
+        "大混戰",
+        "戰爭的傷痕",
+        "污染海洋的壞人",
+        "連接心身的東西",
+        "脆弱性和弱酸性",
+        "被引導的貓咪們",
+        "黑暗的國際都市",
+        "加拉·巴·哥",
+        "岩海苔半島",
+        "惡羅斯聯邦",
+        "亡者聚集之地",
+        "孤島大瘟疫",
+        "迪死你樂園",
+        "豪來塢帝國",
+        "小跟班海岸",
+        "雲泥溫泉鄉",
+        "濃濃春色島",
+        "IT地下墓穴",
+        "怪展會之畫",
+        "22區",
+        "超越大草原",
+        "暴風雪車道",
+        "奇點村",
+        "最終大陸",
+        "傳説的終點",
+        "古代研究所"
+      ];
+
+    const stageNames = [
+      [
+        "天搖地動", "恐怖再現", "疲累日落", "憂鬱濕地", "碰碰廣場", "愛意眼神", "牧場的守護者", "沉睡的獅子" //0傳說的開始8
+      ],
+      [
+        "喵塔露琪亞", "海鮮飯草原", "佛朗明坑", "桑格利亞川", "涼菜湯高原", "巧羅絲之夜", "風乾庭院", "塔帕斯沙漠" //1熱情的國家8
+      ],
+      [
+        "軟骨素沙丘", "芝麻素遺跡", "大豆異黃酮洞窟", "兒茶素丘陵", "茄紅素的夕陽", "蜂膠綠洲", "肽雪原", "玻尿酸山" //2葡萄糖胺沙漠8
+      ],
+      [
+        "魯莽出航", "廣闊海洋", "人魚海灣", "混沌潟湖", "冒牌海盜", "矛盾漁場", "海藻島", "海水很鹹" //3貓咪們渡海8
+      ],
+      [
+        "露點礦石", "性感鐘乳洞", "心跳加速洞", "豐臀水窪", "雙峰岩", "刺激的代價" //4凝視著貓眼石6
+      ],
+      [
+        "槍手的黃昏", "牛仔天堂", "通緝犯之夜", "通心麵城", "流浪的哨子", "失望的保鑣", "牛仔山", "騎術夜" //5西方街道8
+      ],
+      [
+        "紅鮪魚海岸", "新鮮漁場", "蔚藍海洋", "生魚片海面", "獨佔性經濟海域", "最終武器鮪魚", "冷凍鮪魚戰線", "解剖秀洞窟" //6鮪魚海域8
+      ],
+      [
+        "刺痛高原", "竹筍海岸", "殺人鬼叢林", "噁心沼澤", "笨拙坑道", "星塵街道", "蘑菇懸崖", "破曉邊線" //7竹子島8
+      ],
+      [
+        "乳白隧道", "軟綿綿的暗黑兵器", "惡魔的壁畫", "輕風細雨", "撒嬌殺手", "煩惱的岩石", "漏水洞窟", "豐滿的性善論" //8黏糊糊的鐘乳洞8
+      ],
+      [
+        "半身浴岩石", "放鬆間歇泉", "濃稠岩漿", "火焰牢籠", "火山口守護人", "熊熊火山臼" //9瓦魯肯諾火山6
+      ],
+      [
+        "潛力之路", "憂愁之樹", "微風的歌聲", "哲學之道", "境界線的晩鐘", "流淚之川", "光輝之道", "試煉谷底" //10千里之道8
+      ],
+      [
+        "海岩的耳語", "漣漪島", "黑暗章魚海", "波賽頓的小憩", "月光海灘", "珊瑚礁", "月之方舟", "殺戮兵器-殺‧丁魚" //11鹹魚要塞8
+      ],
+      [
+        "青蔥魚腩平原", "蟹黃平原", "鮭魚卵岩窟", "海膽街道", "魚子醬原始林", "納豆海岸", "比目魚森林", "甜蝦邊境" //12軍艦島8
+      ],
+      [
+        "紙箱迴廊", "貓薄荷之夢", "嘎吱嘎吱牆", "撥開木屑", "嘎吱嘎吱柱", "野蠻人的看守人" //13貓咪磨爪的走廊6
+      ],
+      [
+        "宙斯的祭壇", "阿基里斯之劍", "厄洛斯之路", "蓋亞的黎明", "阿芙蘿黛蒂大門", "黑帝斯的迷宮" //14帕德嫩神殿6
+      ],
+      [
+        "摸蜆仔沙灘", "彈塗魚公園", "泳衣美女的影子", "人山人海游泳池", "遮陽傘田", "古早的比基尼", "七彩雞尾酒", "星降大海" //15退潮的海水浴場8
+      ],
+      [
+        "海鷗海岸", "鵜鶘島", "地下控制室", "壞蛋的密林", "咕咕雞賽跑", "貓咪審判", "監獄草原", "看守人與守墓人" //16惡魔島8
+      ],
+      [
+        "罪與罰", "實刑判決", "哈利隧道", "夜之寂靜", "陷阱地帶", "大逃亡" //17越獄隧道6
+      ],
+      [
+        "越獄日誌", "最後的流氓", "監獄破壞", "自由之王", "撒謊的下場", "豬圈的忌諱" //18卡彭監獄6
+      ],
+      [
+        "犍陀羅的休息處", "烏托邦就在那裡", "後醍醐山脊", "猴子魔法", "異國之門", "馬可波羅之路", "豬的剩飯", "河童的冷汗" //19絲綢之路8
+      ],
+      [
+        "有備無患", "黑暗狹窄恐怖陰道", "紅色警報", "人生的陷阱", "隱約的晚鐘", "地底世界" //20邁向黑暗的地下道6
+      ],
+      [
+        "有錢人家的玄關", "浴室", "時尚的VIP室", "拷問間", "獨裁者的花園", "魔王的寢室" //21魔王的豪宅6
+      ],
+      [
+        "背叛之宴", "終焉的淨化", "黑色預感", "破碎的面具", "神愛之籠", "紅狐之聖者" //22終焉宣告之夜6
+      ],
+      [
+        "皇家奶茶", "憤怒與爭鬥心", "悄悄接近的戰慄的詩", "膽小鬼的陷阱", "黑暗中誕生的宿敵", "海鮮與血的腥味" //23大混戰6
+      ],
+      [
+        "瓦爾基麗平原", "地雷區", "秘密武器", "泥濘的壕溝", "狙擊手叢林", "斜陽的士兵", "父親的背影", "邊境線奪還作戰" //24戰爭的傷痕8
+      ],
+      [
+        "鑽油平台", "汗與乙醛", "古代的審判", "可疑的自治團體", "垃圾海岸", "苯田", "政府的走狗", "空降的海流" //25污染海洋的壞人8
+      ],
+      [
+        "晚霞的咆哮", "格式塔,崩壞", "戰士的黎明", "被詛咒的永久凍土", "貓的印証", "愚者的絶望", "代謝症候群", "愛與死" //26連接心身的東西8
+      ],
+      [
+        "至少像隻貓", "圓桌武士", "貓族淨化", "美麗終結", "從惡夢中驚醒", "剛學會去愛" //27脆弱性和弱酸性6
+      ],
+      [
+        "新的戰役", "麥田圈", "野鳥觀察", "語中帶刺", "黑色波浪" //28被引導的貓咪們5
+      ],
+      [
+        "飢餓森林", "自不量力者的巢穴", "通勤尖峰", "集體大滅絕", "來自地底帝國的刺客", "無法地帶支配者" //29黑暗的國際城市6
+      ], 
+      [
+        "DNA與DHA", "夕陽盜獵者", "遇難者們", "異星生態調查團", "樂園生物", "環境保護團體" //30加拉・巴・哥6
+      ],
+      [
+        "凜凜防風林", "伊比利亞平野", "哭砂海岸", "黃金街", "超級慢車道", "武家大院家族內鬥" //31岩海苔半島6
+      ],
+      [
+        "緋紅廣場", "知識階級", "霸道領土", "決戰霸王海", "宇宙開發局", "間諜之戀" //32惡羅斯聯邦6
+      ],
+      [
+        "亡魂鬼屋", "活祭品沼澤", "半夜鬼上床", "騷靈街", "白光之夜", "沉默的小貓" //33亡者聚集之地6
+      ],
+      [
+        "感染者偷渡", "高科技採海帶法", "祖先大遊行", "反脫逃部隊", "憤怒鮪魚戰線", "受感染的島主" //34孤島大瘟疫6
+      ],
+      [
+        "入場大門", "慢吞吞飛車", "真實VR地獄", "50度樂園", "提雞神殿", "骨灰公寓" //35迪死你樂園6
+      ],
+      [
+        "狗仔狂熱潮", "因緣緋聞明星", "飛越泡沫期", "童星出身", "花邊醜聞", "大膽換囚影城" //36豪來塢帝國6
+      ],
+      [
+        "呆瓜游泳大會", "海風美容院", "深海敢死隊", "鞠躬大遊行", "影藝重鎮博覽會", "無法再上陸" //37小跟班海岸6
+      ],
+      [
+        "自家製電療浴缸", "熱水澡忍耐大賽", "化學奇蹟長壽湯", "汙垢敵人黑色汗", "溫泉源頭潛伏者", "氤氳鄉極樂地獄" //38雲泥温泉郷6
+      ],
+      [
+        "豐腴無人碼頭", "浪漫高速公路", "爛醉的按摩師", "看守所大熱戀", "費洛蒙的大門", "春風雲雨之館" //39濃濃春色島6
+      ],
+      [
+        "頭香警衛隊", "撥接式迴廊", "吃到飽基座", "Mrs.DOS之墓", "惡意網站遺址", "神像耦合器" //40IT地下墓穴6
+      ],
+      [
+        "藝術立體派", "療癒地獄繪", "色和尚水墨", "一劃三億五", "不良宗教畫", "館長自畫像" //41怪展會之畫6
+      ],
+      [
+        "羅斯威爾路事件", "大規模屠貓奇案", "亞當斯基型飛盤", "遇見吸吸小山羊", "古斯通通大爆炸", "親愛的你累了嗎" //4222區6
+      ],
+      [
+        "弱肉強食", "靈峰肌力馬札羅山", "原始強敵,再現", "歡喜的乾季", "電子野生動物園", "離天國最近的飲水場" //43超越大草原6
+      ],
+      [
+        "乾裂交流道", "流不停海底隧道", "凍瘡休息站", "暖和對向車道", "眠眠交通警備隊", "休克收費站" //44暴風雪車道6
+      ],
+      [
+        "無所不在販賣處", "VR割稻場", "穿戴式透天厝", "8K堆肥桶", "日落區塊鏈", "基因盆舞" //45奇點村6
+      ],
+      [
+        "天涯小廟", "末日之谷", "最後高塔", "終點迷宮", "止境洞窟", "海角神殿" //46最終大陸6
+      ],
+      [
+        "決斷時刻", "復仇準備", "驕傲光榮", "生命低語", "復活偽咒", "契約之杯", "黃昏風起", "破碎誓言" //47傳說的終點8
+      ],
+      [
+        "太古之力" //48古代研究所1
+      ]
+    ];
+
+
+
+
+    function displayGame() {
+      const warn = document.getElementById("warn");
+      const answer = document.getElementById("answer");
+      warn.innerText = "";
+      warn.className = "";
+      answer.innerText = "";
+      answer.className = "";
+
+      let minChapterInput = parseInt(document.getElementById("chapterMin").value);
+      let maxChapterInput = parseInt(document.getElementById("chapterMax").value);
+
+      // 驗證輸入值
+      if (isNaN(minChapterInput) || isNaN(maxChapterInput) ||
+          minChapterInput < 1 || minChapterInput > 49 ||
+          maxChapterInput < 1 || maxChapterInput > 49 ||
+          minChapterInput > maxChapterInput) {
+            warn.innerText = "章節範圍輸入無效！請輸入1到49之間的數字，且起始章節不能大於結束章節。";
+            warn.className = "text-danger";
+            return; // 中止遊戲開始
+      }
+
+      // 將輸入值轉換為陣列索引 (0-based)
+      let chapterMinIndex = minChapterInput - 1;
+      let chapterMaxIndex = maxChapterInput - 1;
+
+      if (!isclicked) {
+        // 清掉遊戲說明
+        const elementsToClear = document.querySelectorAll(".to-clear");
+        elementsToClear.forEach(el => el.style.display = "none"); // 將它們隱藏
+
+        // 初始化
+        isclicked = true;
+        document.getElementById("tap").innerText = "確定";
+
+        // 根據使用者定義的範圍隨機生成關卡
+        // (chapterMaxIndex - chapterMinIndex + 1) 是範圍內的總章節數
+        // Math.random() * 總章節數 會得到 0 到 總章節數-1 的隨機數
+        // 加上 chapterMinIndex 即可得到在指定範圍內的索引
+        currentChapter = Math.floor(Math.random() * (chapterMaxIndex - chapterMinIndex + 1)) + chapterMinIndex;
+
+        if (currentChapter == 48) {
+          currentStage = 0;
+        } else if (currentChapter == 28) {
+          currentStage = Math.floor(Math.random() * 5);  // 0~4
+        } else if (
+          currentChapter == 0 || currentChapter == 1 || currentChapter == 2 || 
+          currentChapter == 3 || currentChapter == 5 || currentChapter == 6 ||
+          currentChapter == 7 || currentChapter == 8 || currentChapter == 10 || 
+          currentChapter == 11 || currentChapter == 12 || currentChapter == 15 ||
+          currentChapter == 16 || currentChapter == 19 || currentChapter == 24 ||
+          currentChapter == 25 || currentChapter == 26 || currentChapter == 47
+        ) {
+          currentStage = Math.floor(Math.random() * 8);  // 0~7
+        } else {
+          currentStage = Math.floor(Math.random() * 6);  // 0~5
+        }
+        
+        // 顯示圖片
+        document.getElementById(
+          "pic"
+        ).src = `AllStage/${currentChapter}-${currentStage}.png`;
+
+        // 顯示大關名稱與輸入框
+        document.getElementById("chapter").innerHTML =
+          "<b>" + chapterNames[currentChapter] + "</b>";
+        document.getElementById("dash").innerHTML = "-";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = "userInput";
+        input.placeholder = "小關的名字是什麼呢...？";
+
+        const stageDiv = document.getElementById("stage");
+        stageDiv.innerHTML = ""; // 清空舊內容
+        stageDiv.appendChild(input);
+      } else {
+        // 第二次點，檢查輸入
+        const userInput = document.getElementById("userInput");
+        const userAnswer = userInput.value.trim();
+
+        // 在這裡定義 correctAnswer，確保它總是在檢查答案前就存在
+        const correctAnswer = stageNames[currentChapter][currentStage];
+
+        // 移除所有空白字元（包括半形與全形空格）
+        const normalize = str => str.replace(/\s+/g, '');
+
+        if (userAnswer === "") {
+          warn.innerText = "你沒機會作答了！請不要留空白！";
+          warn.className = "text-danger";
+        } else {
+          if (normalize(userAnswer) === normalize(correctAnswer)) {
+            warn.innerText = "你答對了！！";
+            warn.className = "text-success";
+          } else {
+            warn.innerText = "很可惜，你答錯了。";
+            warn.className = "text-danger";
+          }
+        }
+        // 無論答對錯或是否空白，都顯示正確答案
+        answer.innerText =
+          "答案是：" +
+          chapterNames[currentChapter] +
+          " - " +
+          correctAnswer;
+        answer.className = "text-primary";
+        
+        document.getElementById("tap").innerText = "下一題";
+        isclicked = false;
+      }
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+

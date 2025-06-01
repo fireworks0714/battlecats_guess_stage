@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <title>看敵人猜關卡 - 戰鬥貓咪舊傳篇</title>
+  <style>
+    :root {
+      --primary-color: #ff6b6b;
+      --secondary-color: #4ecdc4;
+      --accent-color: #45b7d1;
+      --warning-color: #96ceb4;
+      --danger-color: #feca57;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex; /* 使用 flexbox 讓內容垂直居中 */
+      justify-content: center;
+      align-items: center;
+      padding: 20px; /* 內邊距，防止內容貼邊 */
+    }
+
+    .main-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      /* margin-top: 2rem; */ /* 移除，因為 body 已經 flex 了 */
+      /* margin-bottom: 2rem; */ /* 移除 */
+      overflow: hidden;
+      width: 100%; /* 確保容器可以自適應 */
+      max-width: 900px; /* 設置最大寬度 */
+    }
+
+    .header-section {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .header-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .header-section h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 1;
+    }
+
+    .game-content {
+      padding: 2rem;
+      padding: 2rem;
+      /* 新增的樣式 */
+      margin-left: auto; /* 將左外邊距設為自動 */
+      margin-right: auto; /* 將右外邊距設為自動，實現水平置中 */
+      /* 如果需要，可以給一個 max-width 讓它不要撐滿 main-container */
+      /* max-width: 800px; */
+    }
+
+    .instruction-card {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 20px rgba(240, 147, 251, 0.3);
+    }
+
+    .example-section {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      color: white;
+    }
+
+    .range-selector {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .range-input {
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      padding: 0.75rem;
+      font-size: 1.1rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      max-width: 100px;
+    }
+
+    .range-input:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 0.2rem rgba(69, 183, 209, 0.25);
+      outline: none;
+    }
+
+    /* 將範例圖片和遊戲圖片分開，並設置遊戲圖片的樣式 */
+    #examplePic {
+      max-width: 100%;
+      height: auto;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    #gamePic { /* 遊戲中顯示的圖片 */
+      max-width: 100%;
+      height: auto;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+      margin-bottom: 20px; /* 圖片下方增加間距 */
+      display: block; /* 讓圖片獨佔一行並可以居中 */
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #gamePic:hover {
+      transform: scale(1.02);
+    }
+
+    .game-info {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(252, 182, 159, 0.3);
+    }
+
+    .chapter-display {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .start-button {
+      background: linear-gradient(135deg, var(--primary-color), var(--danger-color));
+      border: none;
+      border-radius: 50px;
+      padding: 1rem 3rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
+      position: relative;
+      overflow: hidden;
+      width: 80%; /* 寬度佔比 */
+      max-width: 300px; /* 最大寬度 */
+    }
+
+    .start-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(255, 107, 107, 0.4);
+      background: linear-gradient(135deg, #ff5252, #ff9800);
+    }
+
+    .start-button:active {
+      transform: translateY(0);
+    }
+
+    .start-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .start-button:hover::before {
+      left: 100%;
+    }
+
+    .alert-custom {
+      border-radius: 15px;
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+      font-weight: 500;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .alert-success-custom {
+      background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+      color: white;
+      border: none;
+    }
+
+    .alert-danger-custom {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      color: white;
+      border: none;
+    }
+
+    .alert-info-custom {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .icon-bounce {
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .input-group-custom {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #userInput {
+      max-width: 300px;
+      margin: 0 auto;
+      height: 45px; /* 增加高度 */
+      font-size: 1.1em; /* 調整字體大小 */
+      padding: 5px 10px; /* 增加內邊距 */
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .header-section h1 {
+        font-size: 2rem;
+      }
+      
+      .game-content {
+        padding: 1rem;
+      }
+      
+      .start-button {
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+      }
+      
+      .input-group-custom {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="header-section">
+      <h1><i class="fas fa-gamepad icon-bounce"></i> 看敵人猜關卡</h1>
+      <p class="lead mb-0">戰鬥貓咪 - 舊傳奇篇挑戰</p>
+    </div>
+
+    <div class="game-content">
+      <div class="instruction-card to-clear">
+        <h3><i class="fas fa-info-circle"></i> 遊戲說明</h3>
+        <p class="mb-2">📱 觀察傳奇關卡的敵人配置，猜出正確的關卡名稱</p>
+        <p class="mb-2">🎯 <strong>只包含舊傳奇關卡</strong></p>
+        <p class="mb-0">💡 <strong>注意章節提示</strong>：相同敵人配置的關卡需要根據章節來判斷</p>
+      </div>
+
+      <div class="example-section to-clear">
+        <h4><i class="fas fa-star"></i> 遊戲範例</h4>
+        <div class="row align-items-center">
+          <div class="col-md-6 text-center">
+            <p>🎮 首先會顯示敵人配置圖片</p>
+            <img id="examplePic" src="AllStage/0-0.png" class="game-image mb-3" alt="關卡敵人配置範例" />
+          </div>
+          <div class="col-md-6 text-center text-md-start">
+            <p>📍 然後提示章節名字：<br><strong class="text-warning">「傳說的開始」</strong></p>
+            <p>✅ 你需要回答出：<br><strong class="text-success">「天搖地動」</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="range-selector to-clear">
+        <h4 class="text-center mb-3"><i class="fas fa-sliders-h"></i> 自定義章節範圍</h4>
+        <p class="text-center text-muted">選擇你想挑戰的章節範圍 (1: 傳說的開始 ～ 49: 古代研究所)</p>
+        <div class="input-group-custom">
+          <div class="d-flex align-items-center">
+            <label class="me-2 fw-bold">起始:</label>
+            <input type="number" class="form-control range-input" id="chapterMin" value="1" min="1" max="49" placeholder="1">
+          </div>
+          <span class="fs-3 text-primary">～</span>
+          <div class="d-flex align-items-center">
+            <label class="me-2 fw-bold">結束:</label>
+            <input type="number" class="form-control range-input" id="chapterMax" value="49" min="1" max="49" placeholder="49">
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center to-clear">
+        <h4 class="text-primary mb-3">
+          <i class="fas fa-heart text-danger"></i> 
+          對於傳奇故事，你了解多少呢？
+          <i class="fas fa-heart text-danger"></i>
+        </h4>
+        <p class="lead">準備好接受挑戰了嗎？點擊下方按鈕開始遊戲！</p>
+      </div>
+
+      <div class="game-info" id="gameInfo" style="display: none;">
+        <div class="chapter-display d-flex flex-column align-items-center mb-3">
+          <span id="chapter" class="mb-2"></span>
+          <span id="stage"></span>
+          <img id="gamePic" src="" alt="關卡敵人配置" class="mt-3">
+        </div>
+        <input type="text" class="form-control" id="userInput" placeholder="請輸入關卡名稱...">
+      </div>
+
+      <div id="warn"></div>
+      <div id="answer"></div>
+
+      <div class="text-center mt-4">
+        <button type="button" class="btn start-button pulse" id="tap" onclick="displayGame()">
+          <i class="fas fa-play me-2"></i>開始遊戲
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isclicked = false;
+    let currentChapter = 0;
+    let currentStage = 0;
+
+    const chapterNames = [
+        "傳說的開始", "熱情的國家", "葡萄糖胺沙漠", "貓咪們渡海", "凝視著貓眼石", "西方街道", "鮪魚海域", "竹子島", "黏糊糊的鍾乳洞", "瓦魯肯諾火山", "千里之道", "鹹魚要塞", "軍艦島", "貓咪磨爪的走廊", "帕德嫩神殿", "退潮的海水浴場", "惡魔島", "越獄隧道", "卡彭監獄", "絲綢之路", "通向黑暗的地下道", "魔王的豪宅", "終焉宣告之夜", "大混戰", "戰爭的傷痕", "污染海洋的壞人", "連接心身的東西", "脆弱性和弱酸性", "被引導的貓咪們", "黑暗的國際都市", "加拉·巴·哥", "岩海苔半島", "惡羅斯聯邦", "亡者聚集之地", "孤島大瘟疫", "迪死你樂園", "豪來塢帝國", "小跟班海岸", "雲泥溫泉鄉", "濃濃春色島", "IT地下墓穴", "怪展會之畫", "22區", "超越大草原", "暴風雪車道", "奇點村", "最終大陸", "傳説的終點", "古代研究所"
+    ];
+
+    const stageNames = [
+      ["天搖地動", "恐怖再現", "疲累日落", "憂鬱濕地", "碰碰廣場", "愛意眼神", "牧場的守護者", "沉睡的獅子"], //0傳說的開始8
+      ["喵塔露琪亞", "海鮮飯草原", "佛朗明坑", "桑格利亞川", "涼菜湯高原", "巧羅絲之夜", "風乾庭院", "塔帕斯沙漠"], //1熱情的國家8
+      ["軟骨素沙丘", "芝麻素遺跡", "大豆異黃酮洞窟", "兒茶素丘陵", "茄紅素的夕陽", "蜂膠綠洲", "肽雪原", "玻尿酸山"], //2葡萄糖胺沙漠8
+      ["魯莽出航", "廣闊海洋", "人魚海灣", "混沌潟湖", "冒牌海盜", "矛盾漁場", "海藻島", "海水很鹹"], //3貓咪們渡海8
+      ["露點礦石", "性感鐘乳洞", "心跳加速洞", "豐臀水窪", "雙峰岩", "刺激的代價"], //4凝視著貓眼石6
+      ["槍手的黃昏", "牛仔天堂", "通緝犯之夜", "通心麵城", "流浪的哨子", "失望的保鑣", "牛仔山", "騎術夜"], //5西方街道8
+      ["紅鮪魚海岸", "新鮮漁場", "蔚藍海洋", "生魚片海面", "獨佔性經濟海域", "最終武器鮪魚", "冷凍鮪魚戰線", "解剖秀洞窟"], //6鮪魚海域8
+      ["刺痛高原", "竹筍海岸", "殺人鬼叢林", "噁心沼澤", "笨拙坑道", "星塵街道", "蘑菇懸崖", "破曉邊線"], //7竹子島8
+      ["乳白隧道", "軟綿綿的暗黑兵器", "惡魔的壁畫", "輕風細雨", "撒嬌殺手", "煩惱的岩石", "漏水洞窟", "豐滿的性善論"], //8黏糊糊的鍾乳洞8
+      ["半身浴岩石", "放鬆間歇泉", "濃稠岩漿", "火焰牢籠", "火山口守護人", "熊熊火山臼"], //9瓦魯肯諾火山6
+      ["潛力之路", "憂愁之樹", "微風的歌聲", "哲學之道", "境界線的晩鐘", "流淚之川", "光輝之道", "試煉谷底"], //10千里之道8
+      ["海岩的耳語", "漣漪島", "黑暗章魚海", "波賽頓的小憩", "月光海灘", "珊瑚礁", "月之方舟", "殺戮兵器-殺‧丁魚"], //11鹹魚要塞8
+      ["青蔥魚腩平原", "蟹黃平原", "鮭魚卵岩窟", "海膽街道", "魚子醬原始林", "納豆海岸", "比目魚森林", "甜蝦邊境"], //12軍艦島8
+      ["紙箱迴廊", "貓薄荷之夢", "嘎吱嘎吱牆", "撥開木屑", "嘎吱嘎吱柱", "野蠻人的看守人"], //13貓咪磨爪的走廊6
+      ["宙斯的祭壇", "阿基里斯之劍", "厄洛斯之路", "蓋亞的黎明", "阿芙蘿黛蒂大門", "黑帝斯的迷宮"], //14帕德嫩神殿6
+      ["摸蜆仔沙灘", "彈塗魚公園", "泳衣美女的影子", "人山人海游泳池", "遮陽傘田", "古早的比基尼", "七彩雞尾酒", "星降大海"], //15退潮的海水浴場8
+      ["海鷗海岸", "鵜鶘島", "地下控制室", "壞蛋的密林", "咕咕雞賽跑", "貓咪審判", "監獄草原", "看守人與守墓人"], //16惡魔島8
+      ["罪與罰", "實刑判決", "哈利隧道", "夜之寂靜", "陷阱地帶", "大逃亡"], //17越獄隧道6
+      ["越獄日誌", "最後的流氓", "監獄破壞", "自由之王", "撒謊的下場", "豬圈的忌諱"], //18卡彭監獄6
+      ["犍陀羅的休息處", "烏托邦就在那裡", "後醍醐山脊", "猴子魔法", "異國之門", "馬可波羅之路", "豬的剩飯", "河童的冷汗"], //19絲綢之路8
+      ["有備無患", "黑暗狹窄恐怖陰道", "紅色警報", "人生的陷阱", "隱約的晚鐘", "地底世界"], //20邁向黑暗的地下道6
+      ["有錢人家的玄關", "浴室", "時尚的VIP室", "拷問間", "獨裁者的花園", "魔王的寢室"], //21魔王的豪宅6
+      ["背叛之宴", "終焉的淨化", "黑色預感", "破碎的面具", "神愛之籠", "紅狐之聖者"], //22終焉宣告之夜6
+      ["皇家奶茶", "憤怒與爭鬥心", "悄悄接近的戰慄的詩", "膽小鬼的陷阱", "黑暗中誕生的宿敵", "海鮮與血的腥味"], //23大混戰6
+      ["瓦爾基麗平原", "地雷區", "秘密武器", "泥濘的壕溝", "狙擊手叢林", "斜陽的士兵", "父親的背影", "邊境線奪還作戰"], //24戰爭的傷痕8
+      ["鑽油平台", "汗與乙醛", "古代的審判", "可疑的自治團體", "垃圾海岸", "苯田", "政府的走狗", "空降的海流"], //25污染海洋的壞人8
+      ["晚霞的咆哮", "格式塔,崩壞", "戰士的黎明", "被詛咒的永久凍土", "貓的印証", "愚者的絶望", "代謝症候群", "愛與死"], //26連接心身的東西8
+      ["至少像隻貓", "圓桌武士", "貓族淨化", "美麗終結", "從惡夢中驚醒", "剛學會去愛"], //27脆弱性和弱酸性6
+      ["新的戰役", "麥田圈", "野鳥觀察", "語中帶刺", "黑色波浪"], //28被引導的貓咪們5
+      ["飢餓森林", "自不量力者的巢穴", "通勤尖峰", "集體大滅絕", "來自地底帝國的刺客", "無法地帶支配者"], //29黑暗的國際城市6
+      ["DNA與DHA", "夕陽盜獵者", "遇難者們", "異星生態調查團", "樂園生物", "環境保護團體"], //30加拉・巴・哥6
+      ["凜凜防風林", "伊比利亞平野", "哭砂海岸", "黃金街", "超級慢車道", "武家大院家族內鬥"], //31岩海苔半島6
+      ["緋紅廣場", "知識階級", "霸道領土", "決戰霸王海", "宇宙開發局", "間諜之戀"], //32惡羅斯聯邦6
+      ["亡魂鬼屋", "活祭品沼澤", "半夜鬼上床", "騷靈街", "白光之夜", "沉默的小貓"], //33亡者聚集之地6
+      ["感染者偷渡", "高科技採海帶法", "祖先大遊行", "反脫逃部隊", "憤怒鮪魚戰線", "受感染的島主"], //34孤島大瘟疫6
+      ["入場大門", "慢吞吞飛車", "真實VR地獄", "50度樂園", "提雞神殿", "骨灰公寓"], //35迪死你樂園6
+      ["狗仔狂熱潮", "因緣緋聞明星", "飛越泡沫期", "童星出身", "花邊醜聞", "大膽換囚影城"], //36豪來塢帝國6
+      ["呆瓜游泳大會", "海風美容院", "深海敢死隊", "鞠躬大遊行", "影藝重鎮博覽會", "無法再上陸"], //37小跟班海岸6
+      ["自家製電療浴缸", "熱水澡忍耐大賽", "化學奇蹟長壽湯", "汙垢敵人黑色汗", "溫泉源頭潛伏者", "氤氳鄉極樂地獄"], //38雲泥温泉郷6
+      ["豐腴無人碼頭", "浪漫高速公路", "爛醉的按摩師", "看守所大熱戀", "費洛蒙的大門", "春風雲雨之館"], //39濃濃春色島6
+      ["頭香警衛隊", "撥接式迴廊", "吃到飽基座", "Mrs.DOS之墓", "惡意網站遺址", "神像耦合器"], //40IT地下墓穴6
+      ["藝術立體派", "療癒地獄繪", "色和尚水墨", "一劃三億五", "不良宗教畫", "館長自畫像"], //41怪展會之畫6
+      ["羅斯威爾路事件", "大規模屠貓奇案", "亞當斯基型飛盤", "遇見吸吸小山羊", "古斯通通大爆炸", "親愛的你累了嗎"], //4222區6
+      ["弱肉強食", "靈峰肌力馬札羅山", "原始強敵,再現", "歡喜的乾季", "電子野生動物園", "離天國最近的飲水場"], //43超越大草原6
+      ["乾裂交流道", "流不停海底隧道", "凍瘡休息站", "暖和對向車道", "眠眠交通警備隊", "休克收費站"], //44暴風雪車道6
+      ["無所不在販賣處", "VR割稻場", "穿戴式透天厝", "8K堆肥桶", "日落區塊鏈", "基因盆舞"], //45奇點村6
+      ["天涯小廟", "末日之谷", "最後高塔", "終點迷宮", "止境洞窟", "海角神殿"], //46最終大陸6
+      ["決斷時刻", "復仇準備", "驕傲光榮", "生命低語", "復活偽咒", "契約之杯", "黃昏風起", "破碎誓言"], //47傳說的終點8
+      ["太古之力"] //48古代研究所1
+    ];
+
+    function displayGame() {
+      const warnEl = document.getElementById("warn");
+      const answerEl = document.getElementById("answer");
+      const gameInfoEl = document.getElementById("gameInfo");
+      const tapButton = document.getElementById("tap");
+      const gamePicEl = document.getElementById("gamePic"); // 獲取遊戲圖片元素
+
+      // 清除之前的警告和答案
+      warnEl.innerHTML = "";
+      answerEl.innerHTML = "";
+      warnEl.className = ""; // 清除舊的Bootstrap類別
+      answerEl.className = ""; // 清除舊的Bootstrap類別
+
+      if (!isclicked) {
+        // 獲取輸入框的值，並轉換為數字
+        const min = parseInt(document.getElementById("chapterMin").value);
+        const max = parseInt(document.getElementById("chapterMax").value);
+        
+        // 驗證輸入
+        if (isNaN(min) || isNaN(max) || min < 1 || max > chapterNames.length || min > max) {
+          warnEl.innerHTML = `
+            <div class="alert alert-danger-custom alert-custom fade-in">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              請輸入正確的章節範圍 (1 到 ${chapterNames.length})，且起始值不能大於結束值！
+            </div>
+          `;
+          return;
+        }
+
+        // 隱藏說明內容
+        const elementsToClear = document.querySelectorAll(".to-clear");
+        elementsToClear.forEach(el => {
+          el.style.transition = "opacity 0.5s ease";
+          el.style.opacity = "0";
+          setTimeout(() => el.style.display = "none", 500);
+        });
+
+        // 顯示遊戲信息區塊
+        setTimeout(() => {
+          gameInfoEl.style.display = "block";
+          gameInfoEl.classList.add("fade-in");
+        }, 600); // 等待說明隱藏後再顯示
+
+        // 建立章節範圍 (0-based index)
+        const chapterRange = [];
+        for (let i = min - 1; i < max; i++) {
+          chapterRange.push(i);
+        }
+
+        // 隨機選擇章節
+        currentChapter = chapterRange[Math.floor(Math.random() * chapterRange.length)];
+        
+        // 隨機選擇小關卡，根據該章節實際的小關卡數量
+        if (stageNames[currentChapter] && stageNames[currentChapter].length > 0) {
+            currentStage = Math.floor(Math.random() * stageNames[currentChapter].length);
+        } else {
+            // 如果某個章節沒有定義小關卡，則報錯並重試
+            console.error(`Error: Chapter ${currentChapter} (${chapterNames[currentChapter]}) has no stages defined.`);
+            warnEl.innerHTML = `
+                <div class="alert alert-danger-custom alert-custom fade-in">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    內部錯誤：無法找到該章節的小關卡資料，請嘗試重新開始。
+                </div>
+            `;
+            // 強制重設以便點擊"下一題"時能重新開始
+            isclicked = false; 
+            tapButton.innerHTML = '<i class="fas fa-redo me-2"></i>下一題';
+            tapButton.classList.remove("start-button");
+            tapButton.classList.add("btn-info"); // 可以給一個不同的樣式
+            return;
+        }
+
+        // 設定遊戲圖片的 src
+        gamePicEl.src = `AllStage/${currentChapter}-${currentStage}.png`;
+        gamePicEl.classList.add("fade-in"); // 圖片出現時帶有淡入動畫
+
+        // 顯示大關名稱
+        document.getElementById("chapter").innerHTML = `<span class="badge bg-primary fs-6">第 ${currentChapter + 1} 章</span>`;
+        document.getElementById("stage").innerHTML = `<span class="text-dark fw-bold">${chapterNames[currentChapter]}</span>`;
+        
+        // 設置輸入框的 placeholder
+        document.getElementById("userInput").value = ""; // 清空上次的輸入
+        document.getElementById("userInput").placeholder = "請輸入關卡名稱...";
+        document.getElementById("userInput").focus(); // 自動聚焦到輸入框
+
+        // 更新按鈕狀態
+        isclicked = true;
+        tapButton.innerHTML = '<i class="fas fa-check me-2"></i>確認答案';
+        tapButton.classList.remove("pulse", "start-button"); // 移除脈動動畫和原始樣式
+        tapButton.classList.add("btn-primary"); // 變成確認按鈕的藍色
+
+      } else {
+        // 檢查答案
+        const userInput = document.getElementById("userInput");
+        const userAnswer = userInput ? userInput.value.trim() : "";
+        
+        const normalize = str => str.replace(/\s+/g, '').toLowerCase(); // 轉換為小寫並移除空白，便於比較
+        const correctAnswer = stageNames[currentChapter][currentStage];
+        const normalizedCorrectAnswer = normalize(correctAnswer);
+        const normalizedUserAnswer = normalize(userAnswer);
+
+        if (userAnswer === "") {
+          warnEl.innerHTML = `
+            <div class="alert alert-danger-custom alert-custom fade-in">
+              <i class="fas fa-times-circle me-2"></i>
+              請不要留空白！你沒機會重新回答了！
+            </div>
+          `;
+        } else {
+          if (normalizedUserAnswer === normalizedCorrectAnswer) {
+            warnEl.innerHTML = `
+              <div class="alert alert-success-custom alert-custom fade-in">
+                <i class="fas fa-trophy me-2"></i>
+                🎉 恭喜你答對了！你真是專家！
+              </div>
+            `;
+          } else {
+            warnEl.innerHTML = `
+              <div class="alert alert-danger-custom alert-custom fade-in">
+                <i class="fas fa-times me-2"></i>
+                很可惜答錯了，繼續加油！
+              </div>
+            `;
+          }
+        }
+
+        // 顯示正確答案
+        answerEl.innerHTML = `
+          <div class="alert alert-info-custom alert-custom fade-in">
+            <i class="fas fa-lightbulb me-2"></i>
+            <strong>正確答案：</strong>${chapterNames[currentChapter]} - ${correctAnswer}
+          </div>
+        `;
+
+        // 更新按鈕狀態為下一題
+        tapButton.innerHTML = '<i class="fas fa-redo me-2"></i>下一題';
+        tapButton.classList.remove("btn-primary"); // 移除確認按鈕藍色
+        tapButton.classList.add("btn-info"); // 變回 info 藍色
+        isclicked = false;
+      }
+    }
+
+    // 添加Enter鍵支持
+    document.addEventListener('keypress', function(e) {
+      // 只有在遊戲進行中 (isclicked 為 true) 且輸入框存在時才觸發
+      if (e.key === 'Enter' && isclicked && document.getElementById('userInput')) {
+        displayGame();
+      }
+    });
+  </script>
+</body>
+</html>
